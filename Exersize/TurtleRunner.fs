@@ -36,9 +36,17 @@ type Command =
     | SetPen of PenState
     | SetColour of Colour
 
-let getRadians (angle:Angle) :float =
+
+// Handle radians and stuff
+
+let toRadians angle =
     match angle with
-    | Degrees angle -> angle * Math.PI/180.0
+    | Degrees a -> Radians (a * Math.PI/180.0)
+    | Radians _ -> angle
+
+let rec getRadians (angle:Angle) :float =
+    match angle with
+    | Degrees _ -> getRadians (toRadians angle)
     | Radians angle -> angle
 
 let turn initAngle direction turnAngle =
@@ -48,8 +56,6 @@ let turn initAngle direction turnAngle =
     | Left -> Radians (initRad - turnRad)
     | Right -> Radians (initRad + turnRad)
 
-// Function to apply state changes in a Command to a Turtle
-// Uses pattern matching to deconstruct the command into the different cases
 let processCommand turtle command =
     match command with
     | Move distance ->
@@ -64,7 +70,6 @@ let processCommand turtle command =
         {turtle with colour = colour}
 
 
-// --- Uncomment this section to run a full test ---
 // List of Commands to apply
 let commands = [
     Move 20.0
@@ -90,4 +95,4 @@ let turtle = {
 // Apply all the commands to the Turtle in turn
 let movedTurtle =
     commands
-    |> List.fold (fun agg command -> processCommand agg command) turtle
+    |> List.fold processCommand turtle
